@@ -203,9 +203,10 @@ class _ConversationPageState extends State<ConversationPage> {
     setState(() => _messages[index] = updated);
 
     try {
-      final result = await _api.setReaction(message.id, isLiked: newLiked);
+      //for now only local
+      // final result = await _api.setReaction(message.id, isLiked: newLiked);
       final resultIndex = _messages.indexWhere((m) => m.id == message.id);
-      if (resultIndex != -1) setState(() => _messages[resultIndex] = result);
+      // if (resultIndex != -1) setState(() => _messages[resultIndex] = result);
     } catch (e) {
       final rollbackIndex = _messages.indexWhere((m) => m.id == message.id);
       if (rollbackIndex != -1) {
