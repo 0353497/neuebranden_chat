@@ -205,7 +205,7 @@ class _ConversationPageState extends State<ConversationPage> {
     try {
       //for now only local
       // final result = await _api.setReaction(message.id, isLiked: newLiked);
-      final resultIndex = _messages.indexWhere((m) => m.id == message.id);
+      // final resultIndex = _messages.indexWhere((m) => m.id == message.id);
       // if (resultIndex != -1) setState(() => _messages[resultIndex] = result);
     } catch (e) {
       final rollbackIndex = _messages.indexWhere((m) => m.id == message.id);
@@ -359,7 +359,10 @@ class _ConversationPageState extends State<ConversationPage> {
                     isFailed: _failedMessageIds.contains(message.id),
                     onLongPressAt: (position) =>
                         _showMessageMenu(message, position),
-                    onAvatarTap: () => Get.to(() => MiniProfileModal()),
+                    onAvatarTap: () => Get.to(
+                      () =>
+                          MiniProfileModal(user: _usersById[message.senderId]!),
+                    ),
                   ),
                 ),
               ],
