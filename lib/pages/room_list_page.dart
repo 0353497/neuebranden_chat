@@ -232,7 +232,7 @@ class _RoomListPageState extends State<RoomListPage> {
                 ),
                 ListTile(
                   onTap: () {
-                    Get.to(() => ConversationPage(roomId: room.id));
+                    Get.to(() => ConversationPage(room: room));
                   },
                   leading: Badge.count(
                     count: room.unreadCount,

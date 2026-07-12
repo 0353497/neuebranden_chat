@@ -21,21 +21,48 @@ class ApiException implements Exception {
 class ChatUser {
   final String id;
   final String name;
-  final String? avatarUrl;
+  final String? avatar;
+  final List publishedBooks;
+  final List sharedRooms;
+  final bool isAuthor;
+  String get avatarUrl => '${ChatApiService.baseUrl}/assets/$avatar';
 
-  ChatUser({required this.id, required this.name, this.avatarUrl});
+  ChatUser({
+    required this.id,
+    required this.name,
+    this.avatar,
+    this.publishedBooks = const [],
+    this.sharedRooms = const [],
+    this.isAuthor = false,
+  });
 
   factory ChatUser.fromJson(Map<String, dynamic> json) => ChatUser(
     id: json['id'] as String,
     name: json['name'] as String,
-    avatarUrl: json['avatarUrl'] as String?,
+    avatar: json['avatar'] as String?,
+    publishedBooks: json['publishedBooks'],
+    sharedRooms: json['sharedRooms'],
+    isAuthor: json['isAuthor'],
   );
 }
 
+// {
+//       "id": "user-1",
+//       "avatar": "profile.png",
+//       "name": "You",
+//       "isAuthor": false,
+//       "publishedBooks": [],
+//       "sharedRooms": [
+//         "fantasy-adventure",
+//         "reading-challenges",
+//         "book-recommendations",
+//         "scifi-tech"
+//       ]
+//     },
+
 class ChatMessage {
   final String id;
-  final String roomId;
-  final String senderId;
+  final String? senderId;
   final String content;
   final DateTime createdAt;
   final bool isLiked;
@@ -43,7 +70,6 @@ class ChatMessage {
 
   ChatMessage({
     required this.id,
-    required this.roomId,
     required this.senderId,
     required this.content,
     required this.createdAt,
@@ -53,14 +79,18 @@ class ChatMessage {
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
     id: json['id'] as String,
-    roomId: json['roomId'] as String,
-    senderId: json['senderId'] as String,
+    senderId: json['user'] as String?,
     content: json['content'] as String,
-    createdAt: DateTime.parse(json['createdAt'] as String),
+    createdAt: DateTime.parse(json['timestamp'] as String? ?? '2026/07/12'),
     isLiked: json['isLiked'] as bool? ?? false,
     isRead: json['isRead'] as bool? ?? false,
   );
 }
+// "id": "msg-1",
+//       "user": null,
+//       "timestamp": "2026-07-04T09:06:35.944Z",
+//       "content": "Felix Berger joined the room",
+//       "isLiked": false
 
 /// `GET /rooms` — a discoverable room, not yet necessarily joined.
 ///
@@ -190,18 +220,12 @@ class MessagesResponse {
 
 /// `GET /conversations/{roomId}` — messages + users in the room.
 class Conversation {
-  final String roomId;
   final List<ChatMessage> messages;
   final List<ChatUser> users;
 
-  Conversation({
-    required this.roomId,
-    required this.messages,
-    required this.users,
-  });
+  Conversation({required this.messages, required this.users});
 
   factory Conversation.fromJson(Map<String, dynamic> json) => Conversation(
-    roomId: json['roomId'] as String,
     messages: (json['messages'] as List)
         .map((e) => ChatMessage.fromJson(e as Map<String, dynamic>))
         .toList(),
@@ -231,6 +255,10 @@ class ChatApiService {
   /// Provide the auth token however you store it (SharedPreferences, secure
   /// storage, GetX controller, etc). Kept as a simple override hook.
   String? Function() authTokenProvider = () => null;
+
+  /// Set this once after login so pages can tell "my" messages apart from
+  /// everyone else's without threading the id through every widget.
+  String? currentUserId = 'user-1';
 
   Map<String, String> get _headers {
     final token = authTokenProvider();
